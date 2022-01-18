@@ -29,11 +29,11 @@ public class KafkaResponseTopicConfig {
 
     @Bean
     public NewTopic articleResponseTopic() {
-        return new NewTopic(articleResponseTopic, 1, (short) 1);
+        return new NewTopic(articleResponseTopic, 2, (short) 1);
     }
 
     @Bean
     public NewTopic writerResponseTopic() {
-        return new NewTopic(writerResponseTopic, 1, (short) 1);
+        return new NewTopic(writerResponseTopic, 2, (short) 1);
     }
 }

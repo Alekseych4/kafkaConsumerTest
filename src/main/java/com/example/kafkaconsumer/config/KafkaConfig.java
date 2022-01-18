@@ -25,27 +25,29 @@ public class KafkaConfig {
     @Value("${topic.schema.registry.url}")
     private String schemaRegistryUrl;
 
-    @Bean
+    @Bean(name = "writerConsumerFactory")
     public ConsumerFactory<String, WriterSchema> writerConsumerFactory() {
         return new DefaultKafkaConsumerFactory<>(configProperties("writerProcessor"));
     }
 
-    @Bean
+    @Bean(name = "writerListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, WriterSchema> writerListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, WriterSchema> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(writerConsumerFactory());
+        factory.setConcurrency(3);
         return factory;
     }
 
-    @Bean
+    @Bean(name = "articleConsumerFactory")
     public ConsumerFactory<String, ArticleSchema> articleConsumerFactory() {
         return new DefaultKafkaConsumerFactory<>(configProperties("articleProcessor"));
     }
 
-    @Bean
+    @Bean(name = "articleListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, ArticleSchema> articleListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ArticleSchema> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(articleConsumerFactory());
+        factory.setConcurrency(3);
         return factory;
     }
 

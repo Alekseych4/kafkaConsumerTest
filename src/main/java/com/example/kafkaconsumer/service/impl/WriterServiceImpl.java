@@ -12,15 +12,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-//@KafkaListener(groupId = "writerProcessor", topicPartitions = {@TopicPartition(topic = "writer_generator_topic", partitions = {"0"})},
-//        containerFactory = "writerListenerContainerFactory")
-
 @KafkaListener(groupId = "writerProcessor", topics = {"writer_generator_topic"},
         containerFactory = "writerListenerContainerFactory")
 public class WriterServiceImpl implements WriterService {
@@ -34,8 +32,11 @@ public class WriterServiceImpl implements WriterService {
     @Override
     @KafkaHandler
     public void consumeWriter(WriterSchema record) {
-        logger.info("record.value(): " + record.toString());
-        logger.info("record.value().getSchema(): " + record.getSchema());
+        logger.info("--------------------------Writer KafkaHandler----------------------------");
+        logger.info("record: " + record.toString());
+        logger.info("record.getSchema(): " + record.getSchema());
+        logger.info("group.id: " + KafkaUtils.getConsumerGroupId());
+        logger.info("------------------------------------------------------------------------");
 
         buildProducerResponse(saveWriter(record));
     }
@@ -75,8 +76,16 @@ public class WriterServiceImpl implements WriterService {
                             .build();
 
                     kafkaTemplate.send(topicResponse, writerResponseSchema)
-                            .addCallback(res -> logger.info(res.getProducerRecord().toString()),
-                                    err -> logger.error(err.getMessage()));
+                            .addCallback(
+                                    res -> {
+                                        logger.info("----------------SEND MSG--------------------");
+                                        logger.info("topic: " + res.getRecordMetadata().topic());
+                                        logger.info("partition: " + res.getRecordMetadata().partition());
+                                        logger.info("data: " + res.getProducerRecord().toString());
+                                        logger.info("offset: " + res.getRecordMetadata().offset());
+                                        logger.info("---------------------------------------------");
+                                    },
+                                    err -> logger.error("ERROR while sending msg to KafkaProducer: ", err));
                 });
     }
 }
